@@ -62,7 +62,7 @@ class LogMsg(Msg, logging.Logger):
 
     Args:
         name (any, optional): Имя логера
-            (по умолчанию - DEFAULT_LOGGER='masm').
+            (по умолчанию - DEFAULT_LOGGER='twitter').
         level (int, optional): Уровень логируемых сообщений
             (по умолчанию - NOTSET).
         prefix (any, optional): Префикс сообщения, устанавливаемый в '[prefix] '

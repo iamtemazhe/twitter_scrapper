@@ -14,7 +14,7 @@ logging:
     simple:
       format: '%(name)s %(levelname)s %(asctime)s %(pathname)s:%(funcName)s() "%(message)s"'
     logstash:
-      message_type: twitter_api
+      message_type: twitter_logs
       (): logstash_async.formatter.LogstashFormatter
       extra:
         application: twitter
@@ -33,7 +33,7 @@ logging:
       facility: local5
 
   loggers:
-    masm:
+    twitter:
       level: DEBUG
       handlers: [dev_log, console]
       propagate: False
