@@ -1,0 +1,55 @@
+main:
+  enable_cors: true
+
+server:
+  host: localhost
+  port: 8000
+  reuse_address: true
+  reuse_port: true
+
+logging:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    simple:
+      format: '%(name)s %(levelname)s %(asctime)s %(pathname)s:%(funcName)s() "%(message)s"'
+    logstash:
+      message_type: twitter_api
+      (): logstash_async.formatter.LogstashFormatter
+      extra:
+        application: twitter
+
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+    dev_log:
+      class: logging.handlers.SysLogHandler
+      level: DEBUG
+      formatter: simple
+      address: /dev/log
+      facility: local5
+
+  loggers:
+    masm:
+      level: DEBUG
+      handlers: [dev_log, console]
+      propagate: False
+    aiohttp:
+      level: ERROR
+      handlers: [dev_log, console]
+      propagate: True
+    aiohttp.server:
+      level: ERROR
+      handlers: [dev_log, console]
+      propagate: True
+    sqlalchemy:
+      level: ERROR
+      handlers: [dev_log, console]
+      propagate: False
+    aioamqp:
+      level: ERROR
+      handlers: [dev_log, console]
+      propagate: False
