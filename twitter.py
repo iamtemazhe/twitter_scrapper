@@ -57,9 +57,9 @@ class TwitterAPI:
     # Определяем заголовки User Agent,
     # чтобы запретить Twitter возвращать карточку профиля
     HEADERS = {
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) '
+        'user-agent': ('Mozilla/5.0 (X11; Linux x86_64) '
                       'AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/46.0.2490.86 Safarii/537.36'
+                      'Chrome/46.0.2490.86 Safarii/537.36'),
     }
     # Twitter main URL
     URL = 'https://www.twitter.com'
