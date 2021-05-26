@@ -150,12 +150,14 @@ class TwitterAPI:
         (!search_query не может быть пустым!).
 
         Args:
-            search_query (str): Поисковый текст запроса.
-            profile (str): Отображаемое имя пользователя [screen name].
-            reply (bool): Флаг ответа (default=False).
-            since (str): Временная отметка начала поиска твитов.
-            until (str): Временная отметка конца поиска твитов.
-            since_id (int): Идентификатор сообщения начала поиска твитов.
+            search_query (str, optional): Поисковый текст запроса.
+            profile (str, optional): Отображаемое имя пользователя
+                [screen name].
+            reply (bool, optional): Флаг ответа (default=False).
+            since (str, optional): Временная отметка начала поиска.
+            until (str, optional): Временная отметка конца поиска.
+            since_id (int, optional): Идентификатор сообщения
+                начала поиска.
 
         Returns:
             str: Возвращает query-строку для поискового запроса.
@@ -181,7 +183,8 @@ class TwitterAPI:
         return query.lstrip()
 
     def construct_video_url(self, video_material_id: int) -> str:
-        """Конструктор URL для просмотра video, gif, загруженных в Twitter.
+        """Конструктор URL для просмотра video, gif,
+        загруженных в Twitter.
 
         Args:
             video_material_id (int): Идентификатор материала,
@@ -193,15 +196,17 @@ class TwitterAPI:
         """
         return self.VIDEOS_URL + str(video_material_id)
 
-    async def _get_query_response(self, query: str, max_position: str = ''):
+    async def _get_query_response(self, query: str,
+                                  max_position: str = '') -> dict:
         """Расширенный поиск в Twitter.
 
         Args:
             query (str): Поисковый query.
-            max_position (str): Величина пагинации для получения твитов.
+            max_position (str, optional): Величина пагинации для
+                получения твитов.
 
         Returns:
-            dict:   Возвращает ответ в формате dict-json.
+            dict: Ответ.
 
         """
         # Задаем параметры запроса
@@ -500,9 +505,11 @@ class TwitterAPI:
         Args:
             *args: Аргументы генератора.
             **kwargs: Параметры задания:
-                last_execution_time (int): Время последнего выполнения задания.
+                last_execution_time (int): Время последнего
+                    выполнения задания.
                 id (int): Номер задания (задачи) в Manager.
-                extra (dict): Json-поле, содержащее параметры текущего задания:
+                extra (dict): Json-поле, содержащее параметры
+                        текущего задания:
                     owner_id (str): Профиль (alias).
                     stage (dict): Стадия выполнения текущего задания.
 
