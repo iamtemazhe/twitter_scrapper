@@ -7,6 +7,7 @@ from asyncio import (
 from datetime import datetime
 from functools import wraps
 from hashlib import sha256
+from time import time as time_now
 from urllib.parse import urlencode, urlunparse
 
 from aiohttp import (
@@ -16,7 +17,6 @@ from aiohttp import (
 )
 from bs4 import BeautifulSoup
 
-from .base import time_now
 from .exceptions import (
     ApiError,
     NonCriticalError,
@@ -26,7 +26,7 @@ from .exceptions import (
 )
 from .loggers import getLogger
 
-logger = getLogger('twitter')
+logger = getLogger()
 
 
 def emitter(asyncgen):
@@ -77,7 +77,7 @@ class TwitterAPI:
 
     __slots__ = ('_session', '_timeout', 'counter')
 
-    def __init__(self, session: ClientSession = None, **kwargs):
+    def __init__(self, session: ClientSession = None):
         self._session = session or ClientSession
         self._timeout = ClientTimeout(total=self.TIMEOUT)
         # Счетчик загруженных материалов
@@ -126,7 +126,7 @@ class TwitterAPI:
             raise InvalidOwnerId(url)
 
     @staticmethod
-    def to_soup(items_html: str, feature: str='html.parser') -> BeautifulSoup:
+    def to_soup(items_html: str, feature: str = 'html.parser') -> BeautifulSoup:
         """HTML-парсер для построения дерева элементов
         посредством BeautifulSoup.
 
@@ -141,10 +141,9 @@ class TwitterAPI:
         return BeautifulSoup(items_html, feature)
 
     @staticmethod
-    def construct_query(
-            search_query: str='', profile: str='', reply: bool=False,
-            since: str='', until: str='', since_id: int=0
-    ):
+    def construct_query(search_query: str = '', profile: str = '',
+                        reply: bool = False, since: str = '',
+                        until: str = '', since_id: int = 0) -> str:
         """Конструктор поискового URL по query и/или profile.
         Собирает query для расширенного поиска Twitter
         по конструкции https://twitter.com/search-advanced
@@ -181,7 +180,7 @@ class TwitterAPI:
 
         return query.lstrip()
 
-    def construct_video_url(self, video_material_id: int):
+    def construct_video_url(self, video_material_id: int) -> str:
         """Конструктор URL для просмотра video, gif, загруженных в Twitter.
 
         Args:
@@ -194,7 +193,7 @@ class TwitterAPI:
         """
         return self.VIDEOS_URL + str(video_material_id)
 
-    async def _get_query_response(self, query: str, max_position: str=''):
+    async def _get_query_response(self, query: str, max_position: str = ''):
         """Расширенный поиск в Twitter.
 
         Args:
@@ -234,6 +233,7 @@ class TwitterAPI:
                             f'twits by current IP, '
                             f'response_status={response.status}.'
                         )
+
                         return await self._get_query_response(
                             query,
                             max_position=max_position
@@ -249,6 +249,7 @@ class TwitterAPI:
                             f'response_status={response.status}.'
                         )
                         await async_sleep(self.RESPONSE_DELAY)
+
                         return await self._get_query_response(
                             query,
                             max_position=max_position
@@ -261,6 +262,7 @@ class TwitterAPI:
                             f'response_status={response.status}.'
                         )
                         await async_sleep(self.RESPONSE_DELAY)
+
                         return await self._get_query_response(
                             query,
                             max_position=max_position
@@ -275,8 +277,8 @@ class TwitterAPI:
 
         return response
 
-    async def _search(self,
-        query: str, stage: dict, task_id: int=0) -> typing.AsyncGenerator:
+    async def _search(self, query: str, stage: dict,
+                      task_id: int = 0) -> typing.AsyncGenerator:
         """Генератор для скраппинга Twitter.
 
         Args:
@@ -295,7 +297,7 @@ class TwitterAPI:
         # Получаем время публикации последнего полученного твита в милисекундах
         last_tweet_time = stage.get(
             'last_tweet_pub_time',
-            time_now(to_int=False) * 1000,
+            time_now() * 1000,
         )
 
         # Получаем параметры поисковой страницы
@@ -312,7 +314,7 @@ class TwitterAPI:
 
         # Если материалов не было обнаружено, заканчиваем
         if not twits:
-            return
+            return None
 
         has_no_more_items = not response.get('has_more_items', False)
 
@@ -334,7 +336,7 @@ class TwitterAPI:
 
             # Если это последняя страница твитов, дальше не идём
             if has_no_more_items:
-                return
+                return None
 
         min_tweet_id = twits[0]['id']
         while twits:
@@ -415,7 +417,7 @@ class TwitterAPI:
             # Если время публикации меньше времени последнего выполнения
             # задачи, завершаем
             if twit['publication_datetime'] < search_until:
-                return
+                return None
 
             yield {
                 'twits': [twit, ],
@@ -461,6 +463,7 @@ class TwitterAPI:
                             f'response_status={response.status}.'
                         )
                         await async_sleep(self.RESPONSE_DELAY)
+
                         return await self.check_profile(profile)
 
                     # Internal Server Error:
@@ -550,7 +553,7 @@ class TwitterAPI:
                 # Если время публикации меньше времени последнего выполнения
                 # задачи, завершаем
                 if twit['publication_datetime'] < search_until:
-                    return
+                    return None
 
                 yield {
                     'twits': [twit, ],
@@ -582,7 +585,7 @@ class TwitterAPI:
             # Если время публикации меньше времени последнего выполнения
             # задачи, завершаем
             if twit['publication_datetime'] < search_until:
-                return
+                return None
 
             yield {
                 'twits': [twit, ],
@@ -598,14 +601,14 @@ class TwitterAPI:
             f'From:profile={profile}> successfully completed.'
         )
 
-    def parse_tweets(self, items_html: str):
+    def parse_tweets(self, items_html: str) -> list:
         """Парсер твитов по заданному HTML-коду.
 
         Args:
             items_html (str): HTML-блок кода с твитами.
 
         Returns:
-            dict: Словарь, содержащий твиты.
+            list: Список, содержащий твиты.
 
         """
         twits = []
@@ -621,7 +624,7 @@ class TwitterAPI:
             twit = {
                 'id': int(li.get('data-item-id')),
                 'url': '',
-                'detected_at': time_now(),
+                'detected_at': int(time_now()),
                 'text': {
                     'text': '',
                     'attachments': {},

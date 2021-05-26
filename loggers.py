@@ -3,6 +3,7 @@ import logging
 
 from .settings import get_config
 
+
 class Msg:
     """Добавляет header prefix и footer postfix к каждому сообщению.
 
@@ -13,11 +14,7 @@ class Msg:
             (по умолчанию - '').
 
     """
-    def __init__(
-        self,
-        prefix = None,
-        postfix = None,
-    ):
+    def __init__(self, prefix=None, postfix=None):
         self.prefix = self.get_prefix(prefix)
         self.postfix = self.get_postfix(postfix)
 
@@ -29,7 +26,21 @@ class Msg:
     def get_postfix(cls, postfix=None) -> str:
         return '' if postfix is None else f' {postfix}'
 
-    def set(self, msg: str, prefix=None, postfix=None) -> str:
+    @classmethod
+    def set_msg(cls, msg: str, prefix=None, postfix=None) -> str:
+        """Вовзращает результирующее сообщение.
+
+        Args:
+            msg (str): Логируемое сообщение.
+
+        Returns:
+            str: Строка в формате:
+                '[{msg_prefix}] {msg} {msg_postfix}'
+
+        """
+        return f'{cls.get_prefix(prefix)}{msg}{cls.get_postfix(postfix)}'
+
+    def set(self, msg: str) -> str:
         """Вовзращает результирующее сообщение.
 
         Args:
@@ -41,20 +52,6 @@ class Msg:
 
         """
         return f'{self.prefix}{msg}{self.postfix}'
-
-    @classmethod
-    def set_msg(self, msg: str, prefix=None, postfix=None) -> str:
-        """Вовзращает результирующее сообщение.
-
-        Args:
-            msg (str): Логируемое сообщение.
-
-        Returns:
-            str: Строка в формате:
-                '[{msg_prefix}] {msg} {msg_postfix}'
-
-        """
-        return f'{self.get_prefix(prefix)}{msg}{self.get_postfix(postfix)}'
 
 
 class LogMsg(Msg, logging.Logger):
@@ -84,10 +81,10 @@ class LogMsg(Msg, logging.Logger):
 
     def __init__(
         self,
-        name = DEFAULT_LOGGER,
+        name: str = DEFAULT_LOGGER,
         level: int = NOTSET,
-        prefix = None,
-        postfix = None,
+        prefix=None,
+        postfix=None
     ):
         name = name or self.DEFAULT_LOGGER
         prefix = prefix or name
@@ -98,7 +95,7 @@ class LogMsg(Msg, logging.Logger):
         super(LogMsg, self)._log(level, self.set(msg), *args, **kwargs)
 
 
-def getLogger(name: str=None, prefix=None, postfix=None):
+def getLogger(name: str = None, prefix=None, postfix=None):
     default_logger = logging.getLogger(LogMsg.DEFAULT_LOGGER)
 
     logger = LogMsg(name, prefix=prefix, postfix=postfix)
