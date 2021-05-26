@@ -135,7 +135,7 @@ class TwitterAPI:
             feature (str, optional): Параметры/механизм парсера.
 
         Returns:
-            str: Распаршенное HTML-дерево.
+            BeautifulSoup: Распаршенное HTML-дерево.
 
         """
         return BeautifulSoup(items_html, feature)
